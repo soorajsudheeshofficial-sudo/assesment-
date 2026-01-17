@@ -2,21 +2,24 @@
 
 import { useState } from "react"
 import { Mail } from "lucide-react"
-import { submitRSVP } from "@/app/actions/rsvp"
 
 interface RSVPFormProps {
   variant?: "light" | "dark"
 }
 
 export function RSVPForm({ variant = "light" }: RSVPFormProps) {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle")
   const [message, setMessage] = useState("")
 
-  async function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setStatus("loading")
-    const result = await submitRSVP(formData)
-    setStatus(result.success ? "success" : "error")
-    setMessage(result.message)
+
+    // Static-safe mock submit
+    setTimeout(() => {
+      setStatus("success")
+      setMessage("Thank you! Your RSVP has been recorded.")
+    }, 800)
   }
 
   const isLight = variant === "light"
@@ -24,10 +27,9 @@ export function RSVPForm({ variant = "light" }: RSVPFormProps) {
   return (
     <div className="w-full">
       <form
-        action={handleSubmit}
+        onSubmit={handleSubmit}
         className="flex flex-col md:flex-row gap-3"
       >
-        {/* Input */}
         <div
           className={`flex-1 flex items-center gap-3 px-4 py-3 rounded-md border ${
             isLight
@@ -38,36 +40,28 @@ export function RSVPForm({ variant = "light" }: RSVPFormProps) {
           <Mail className={`w-5 h-5 ${isLight ? "text-gray-400" : "text-white/50"}`} />
           <input
             type="email"
-            name="email"
+            required
             placeholder="Enter your work email to confirm your attendance"
             className={`flex-1 bg-transparent outline-none text-sm ${
               isLight
                 ? "text-gray-700 placeholder:text-gray-400"
                 : "text-white placeholder:text-white/50"
             }`}
-            required
             disabled={status === "loading" || status === "success"}
           />
         </div>
 
-        {/* Button */}
         <button
           type="submit"
           disabled={status === "loading" || status === "success"}
-          className="px-8 py-3 bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold rounded-md transition-colors disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap"
+          className="px-8 py-3 bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold rounded-md transition-colors disabled:opacity-70"
         >
           {status === "loading" ? "Submitting..." : "RSVP Now"}
         </button>
       </form>
 
       {message && (
-        <p
-          className={`mt-2 text-sm ${
-            status === "success" ? "text-green-600" : "text-red-500"
-          }`}
-        >
-          {message}
-        </p>
+        <p className="mt-2 text-sm text-green-600">{message}</p>
       )}
     </div>
   )
